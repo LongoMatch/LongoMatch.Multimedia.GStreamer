@@ -1,0 +1,12 @@
+obj
+bin
+.vs
+.DS_Store
+mono_crash*
+TestResult.xml
+build/
+*.csproj.user
+*.msm
+*.msi
+*.zip
+*Backup.*
