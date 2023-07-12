@@ -45,8 +45,8 @@ class OSXRelocator(object):
                 new_lib = lib.replace(prefix, '@rpath')
                 subprocess.call(
                     [INT_CMD, '-change', lib, new_lib, object_file])
-        subprocess.call([INT_CMD, '-add_rpath', '.', '-add_rpath',
-                        '@loader_path',  '-add_rpath',  '@executable_path', object_file])
+        for p in ['.', '@loader_path', '@executable_path']:
+            subprocess.call([INT_CMD, '-add_rpath', p, object_file])
 
     @staticmethod
     def list_shared_libraries(object_file):
