@@ -172,6 +172,27 @@ class Build:
         tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
         return tracker.list_deps(plugins_files)
 
+    def _get_files_from_libs(self):
+        libs = ["gstreamer-1.0",
+                "gstapp-1.0",
+                "gstaudio-1.0",
+                "gstbase-1.0",
+                "gstcontroller-1.0",
+                "gstfft-1.0",
+                "gstgl-1.0",
+                "gstnet-1.0",
+                "gstpbutils-1.0",
+                "gstrtp-1.0",
+                "gstrtsp-1.0",
+                "gstsdp-1.0",
+                "gsttag-1.0",
+                "gstvideo-1.0",
+                "gstwebrtc-1.0",
+                "ges-1.0"]
+        lib_files = [self._get_file_from_lib_name(p) for p in libs]
+        tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
+        return tracker.list_deps(lib_files)
+
     def _install_package(self, path, log_file):
         raise NotImplemented()
 
@@ -233,6 +254,8 @@ class BuildMacOS(Build):
         # GStreamer
         gst_install_dir = self._get_gst_install_dir()
         lib_files = self._get_files_from_plugins()
+        lib_files += self._get_files_from_libs()
+        lib_files = set(lib_files)
 
         # The installer does not respect symlinks, copy only the real
         # library:
@@ -286,6 +309,9 @@ class BuildMacOS(Build):
 
     def _get_file_from_plugin_name(self, plugin_name):
         return self._get_gst_install_dir() / "lib" / "gstreamer-1.0" / f'libgst{plugin_name}.dylib'
+
+    def _get_file_from_lib_name(self, lib_name):
+        return self._get_gst_install_dir() / "lib" / f'lib{lib_name}.0.dylib'
 
 
 class BuildWin64(Build):
@@ -349,6 +375,12 @@ class BuildWin64(Build):
 
     def _install_package(self, path, log_file):
         run(f"msiexec /i {path} /quiet /l* {log_file} /norestart ADDLOCAL=All")
+
+    def _get_file_from_plugin_name(self, plugin_name):
+        return self._get_gst_install_dir() / "lib" / "gstreamer-1.0" / f'gst{plugin_name}.dll'
+
+    def _get_file_from_lib_name(self, lib_name):
+        return self._get_gst_install_dir() / "lib" / f'{lib_name}-0.dll'
 
 
 if __name__ == '__main__':
