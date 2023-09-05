@@ -2,6 +2,8 @@ aom
 app
 asf
 audioconvert
+audiofx
+audiomixer
 audioparsers
 audiorate
 audioresample
