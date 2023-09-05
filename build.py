@@ -355,8 +355,8 @@ class BuildWin64(Build):
             shutil.copy(file, gst_native_plugins)
         shutil.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
                     "gst-plugin-scanner.exe", gst_native_scanner_dir)
-        shutil.copy(gst_install_dir / "lib" / "gio" / "modules" / "lgioopenssl.so",
-                gst_native_gio_modules_dir, relocator, strip)
+        shutil.copy(gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll",
+                gst_native_gio_modules_dir)
 
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
