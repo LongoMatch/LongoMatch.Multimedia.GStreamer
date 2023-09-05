@@ -227,6 +227,8 @@ class BuildMacOS(Build):
         gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
         gst_native_plugins = gst_native / "lib" / "gstreamer-1.0"
         gst_native_plugins.mkdir(parents=True, exist_ok=True)
+        gst_native_gio_modules_dir = gst_native / "lib" / "gio" / "modules"
+        gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
 
         # GStreamer
         gst_install_dir = self._get_gst_install_dir()
@@ -258,6 +260,8 @@ class BuildMacOS(Build):
 
         self.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
                   "gst-plugin-scanner", gst_native_scanner_dir, relocator, strip)
+        self.copy(gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so",
+                gst_native_gio_modules_dir, relocator, strip)
 
         avlibs = glob.glob("/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/libav*.*.*.dylib")
         avlibs = [os.path.split(x)[-1] for x in avlibs]
@@ -307,13 +311,14 @@ class BuildWin64(Build):
 
     def install_gst(self):
         super().install_gst()
-
         gst_native = self.nuget_dir / "runtimes" / "win-x64" / "native"
         gst_native_plugins = gst_native / "lib" / "gstreamer-1.0"
         gst_native_plugins.mkdir(parents=True, exist_ok=True)
         gst_native_scanner_dir = self.nuget_dir / "runtimes" / \
             self.nuget_platform / "native" / "libexec" / "gstreamer-1.0"
         gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
+        gst_native_gio_modules_dir = gst_native / "lib" / "gio" / "modules"
+        gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
         subprojects = self.gst_build_dir / "subprojects"
 
         # GStreamer
@@ -324,6 +329,8 @@ class BuildWin64(Build):
             shutil.copy(file, gst_native_plugins)
         shutil.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
                     "gst-plugin-scanner.exe", gst_native_scanner_dir)
+        shutil.copy(gst_install_dir / "lib" / "gio" / "modules" / "lgioopenssl.so",
+                gst_native_gio_modules_dir, relocator, strip)
 
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
