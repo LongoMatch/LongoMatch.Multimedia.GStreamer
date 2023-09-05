@@ -7,7 +7,7 @@
         <!-- Handle specific platform name for Windows, Linux and MacOSX -->
         <LongoMatchGStreamerSharpPlatform Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-$(LongoMatchGStreamerSharpArch)</LongoMatchGStreamerSharpPlatform>
         <LongoMatchGStreamerSharpPlatform Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-$(LongoMatchGStreamerSharpArch)</LongoMatchGStreamerSharpPlatform>
-        <LongoMatchGStreamerSharpPlatform Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-$(LongoMatchGStreamerSharpArch)</LongoMatchGStreamerSharpPlatform>
+        <LongoMatchGStreamerSharpPlatform Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx</LongoMatchGStreamerSharpPlatform>
     </PropertyGroup>
 
     <!-- Copy native libraries to output directory -->

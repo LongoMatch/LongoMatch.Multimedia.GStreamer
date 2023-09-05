@@ -1,8 +1,8 @@
 {
     "runtimes": {
-        "osx-x64": {
+        "osx": {
             "LongoMatch.Multimedia.GStreamer": {
-                "LongoMatch.Multimedia.GStreamer.runtime.osx-x64": "{version}"
+                "LongoMatch.Multimedia.GStreamer.runtime.osx": "{version}"
             }
         },
         "win-x64": {

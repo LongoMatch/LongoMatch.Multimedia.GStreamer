@@ -229,7 +229,7 @@ class Build:
 class BuildMacOS(Build):
 
     def __init__(self, source_dir: Path, build_dir: Path, cache_dir: Path = None):
-        super().__init__('Darwin', 'osx-x64', source_dir, build_dir, cache_dir)
+        super().__init__('Darwin', 'osx', source_dir, build_dir, cache_dir)
         self.nuget_cmd = ["mono", self.cache_dir / "nuget.exe"]
 
     def configure_gst(self):
@@ -296,7 +296,7 @@ class BuildMacOS(Build):
     def copy(self, src, dst_dir, relocator, strip):
         filename = src.name
         dst = dst_dir / filename
-        run(["lipo", src, "-thin", "x86_64", "-output", dst])
+        shutil.copy(src, dst)
         if dst.suffix == ".dylib" or dst.name == "gst-plugin-scanner":
             relocator.change_libs_path(dst)
             run([strip, "-SX", dst])
