@@ -13,15 +13,9 @@
       <group targetFramework=".NETFramework4.7.2" />
       <group targetFramework=".NETCoreApp3.0" />
     </dependencies>
-    <contentFiles>
-      <files include="**\lib\**" buildAction="None" copyToOutput="true"/>
-      <files include="**\libexec\**" buildAction="None" copyToOutput="true"/>
-    </contentFiles>
   </metadata>
    <files>
-    <file src="nuget\runtimes\{platform}\native\*" target="runtimes\{platform}\native" />
-    <file src="nuget\runtimes\{platform}\native\lib\**" target="contentFiles\any\netcoreapp3.0\lib\" />
-    <file src="nuget\runtimes\{platform}\native\libexec\**" target="contentFiles\any\netcoreapp3.0\libexec\" />
+    <file src="nuget\runtimes\{platform}\native\**" target="runtimes\{platform}\native" />
     <file src="nuget\_._" target="lib\net472" />
     <file src="nuget\_._" target="lib\netcoreapp3.0" />
     <file src="nuget\LongoMatch.Multimedia.GStreamer.runtime.{platform}.targets" target="build\net472" />
