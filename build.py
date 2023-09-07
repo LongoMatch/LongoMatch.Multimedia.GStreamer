@@ -166,13 +166,12 @@ class Build:
         self._push_nuget(
             f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}", self.nuget_version)
 
-    def _get_files_from_plugins(self):
+    def _get_files_from_plugins(self, tracker: DepsTracker):
         plugins = [x.split('\n')[0] for x in open(self.source_dir / "plugins_list.txt").readlines() if not x.startswith('#')]
         plugins_files = [self._get_file_from_plugin_name(p) for p in plugins]
-        tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
         return tracker.list_deps(plugins_files)
 
-    def _get_files_from_libs(self):
+    def _get_files_from_libs(self, tracker: DepsTracker):
         libs = ["gstreamer-1.0",
                 "gstapp-1.0",
                 "gstaudio-1.0",
@@ -190,7 +189,6 @@ class Build:
                 "gstwebrtc-1.0",
                 "ges-1.0"]
         lib_files = [self._get_file_from_lib_name(p) for p in libs]
-        tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
         return tracker.list_deps(lib_files)
 
     def _install_package(self, path, log_file):
@@ -252,9 +250,13 @@ class BuildMacOS(Build):
         gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
 
         # GStreamer
+        tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
         gst_install_dir = self._get_gst_install_dir()
-        lib_files = self._get_files_from_plugins()
-        lib_files += self._get_files_from_libs()
+        lib_files = self._get_files_from_plugins(tracker)
+        lib_files += self._get_files_from_libs(tracker)
+        gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so"
+        gst_libsoup = gst_install_dir / "lib" / "libsoup-2.4.1.dylib"
+        lib_files += tracker.list_deps([gst_gio_openssl, gst_libsoup])
         lib_files = set(lib_files)
 
         # The installer does not respect symlinks, copy only the real
@@ -283,8 +285,6 @@ class BuildMacOS(Build):
 
         self.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
                   "gst-plugin-scanner", gst_native_scanner_dir, relocator, strip)
-        self.copy(gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so",
-                gst_native_gio_modules_dir, relocator, strip)
 
         avlibs = glob.glob("/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/libav*.*.*.dylib")
         avlibs = [os.path.split(x)[-1] for x in avlibs]
@@ -297,7 +297,7 @@ class BuildMacOS(Build):
         filename = src.name
         dst = dst_dir / filename
         shutil.copy(src, dst)
-        if dst.suffix == ".dylib" or dst.name == "gst-plugin-scanner":
+        if dst.suffix in [".dylib", ".so"] or dst.name == "gst-plugin-scanner":
             relocator.change_libs_path(dst)
             run([strip, "-SX", dst])
 
