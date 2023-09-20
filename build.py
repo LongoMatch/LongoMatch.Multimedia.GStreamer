@@ -256,7 +256,8 @@ class BuildMacOS(Build):
         lib_files += self._get_files_from_libs(tracker)
         gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so"
         gst_libsoup = gst_install_dir / "lib" / "libsoup-2.4.1.dylib"
-        lib_files += tracker.list_deps([gst_gio_openssl, gst_libsoup])
+        gst_inspect = gst_install_dir / "bin" / "gst-inspect-1.0"
+        lib_files += tracker.list_deps([gst_gio_openssl, gst_libsoup, gst_inspect])
         lib_files = set(lib_files)
 
         # The installer does not respect symlinks, copy only the real
@@ -280,6 +281,8 @@ class BuildMacOS(Build):
         for f in files.values():
             if "lib/gstreamer-1.0" in str(f):
                 self.copy(f, gst_native_plugins, relocator, strip)
+            elif "lib/gio/modules" in str(f):
+                self.copy(f, gst_native_gio_modules_dir, relocator, strip)
             else:
                 self.copy(f, gst_native, relocator, strip)
 
@@ -297,7 +300,7 @@ class BuildMacOS(Build):
         filename = src.name
         dst = dst_dir / filename
         shutil.copy(src, dst)
-        if dst.suffix in [".dylib", ".so"] or dst.name == "gst-plugin-scanner":
+        if dst.suffix in [".dylib", ".so"] or dst.name.startswith("gst-"):
             relocator.change_libs_path(dst)
             run([strip, "-SX", dst])
 
