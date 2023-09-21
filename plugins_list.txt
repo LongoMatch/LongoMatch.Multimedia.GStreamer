@@ -52,4 +52,5 @@ vpx
 # macOS
 applemedia
 # Windows
-applemedia
+d3d11
+wasapi2
