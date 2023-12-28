@@ -18,6 +18,7 @@
     <file src="nuget\runtimes\{platform}\native\**" target="runtimes\{platform}\native" />
     <file src="nuget\_._" target="lib\net472" />
     <file src="nuget\_._" target="lib\netcoreapp3.0" />
-    <file src="nuget\LongoMatch.Multimedia.GStreamer.runtime.{platform}.targets" target="build\net472" />
+    <file src="nuget\LongoMatch.Multimedia.GStreamer.runtime.{platform}.targets.net472" target="build\net472\LongoMatch.Multimedia.GStreamer.runtime.{platform}.targets" />
+    <file src="nuget\LongoMatch.Multimedia.GStreamer.runtime.{platform}.targets" target="build\netcoreapp3.0\" />
   </files>
 </package>
