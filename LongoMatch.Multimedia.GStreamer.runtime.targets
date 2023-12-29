@@ -12,12 +12,10 @@
 
     <!-- Copy native libraries to output directory -->
     <ItemGroup>
-        <None Condition="Exists('$(MSBuildThisFileDirectory)..\..\plugins\$(LongoMatchGStreamerSharpPlatform)\native')"
-              Include="$(MSBuildThisFileDirectory)..\..\plugins\$(LongoMatchGStreamerSharpPlatform)\native\**"
+        <None Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\$(LongoMatchGStreamerSharpPlatform)\native')"
+              Include="$(MSBuildThisFileDirectory)..\..\runtimes\$(LongoMatchGStreamerSharpPlatform)\native\**"
               Link="%(RecursiveDir)%(Filename)%(Extension)"
               Visible="false"
-              TargetPath="%(RecursiveDir)%(Filename)%(Extension)"
-              PublishFolderType="PluginLibrary"
-              CopyToOutputDirectory="PreserveNewest" />
+              CopyToOutputDirectory="Always" />
     </ItemGroup>
 </Project>

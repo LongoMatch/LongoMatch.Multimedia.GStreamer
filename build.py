@@ -154,8 +154,6 @@ class Build:
                     self.build_dir / f"longomatch-multimedia-gstreamer.runtime.{self.nuget_platform}.nuspec")
         replace(self.build_dir /
                 f"longomatch-multimedia-gstreamer.runtime.{self.nuget_platform}.nuspec", replacements)
-        shutil.copy(self.source_dir / "LongoMatch.Multimedia.GStreamer.runtime.targets.net472",
-                    self.nuget_dir / f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}.targets.net472")
         shutil.copy(self.source_dir / "LongoMatch.Multimedia.GStreamer.runtime.targets",
                     self.nuget_dir / f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}.targets")
         open(self.nuget_dir / "_._", mode='w').close()
