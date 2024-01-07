@@ -41,6 +41,7 @@ togglerecord
 typefindfunctions
 udp
 videoconvertscale
+videocrop
 videofilter
 videoparsersbad
 videorate
