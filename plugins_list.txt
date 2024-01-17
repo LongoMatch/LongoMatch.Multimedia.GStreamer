@@ -25,6 +25,8 @@ libav
 matroska
 mpegpsdemux
 mpegtsdemux
+multipartdemux
+multipartmux
 nle
 ogg
 opengl
