@@ -34,7 +34,7 @@ playback
 png
 rtp
 rtpmanager
-rstp
+rtsp
 soup
 subparse
 togglerecord
