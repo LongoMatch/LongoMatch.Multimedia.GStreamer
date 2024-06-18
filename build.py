@@ -129,7 +129,28 @@ class Build:
         run(f"ninja", self.gst_build_dir)
 
     def install_gst(self):
-        pass
+        self.gst_plugins = Path("lib") / "gstreamer-1.0"
+        self.gst_native = self.nuget_dir / "runtimes" / self.nuget_platform / "native"
+        self.gst_native_plugins = self.gst_native / self.gst_plugins
+        self.gst_native_plugins.mkdir(parents=True, exist_ok=True)
+        self.gst_native_scanner_dir = (
+            self.nuget_dir
+            / "runtimes"
+            / self.nuget_platform
+            / "native"
+            / "libexec"
+            / "gstreamer-1.0"
+        )
+        self.gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
+        self.gst_native_gio_modules_dir = self.gst_native / "lib" / "gio" / "modules"
+        self.gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
+        self.subprojects = self.gst_build_dir / "subprojects"
+
+        self.gst_native_debug = (
+            self.nuget_dir / "runtimes" / self.nuget_platform / "native-debug"
+        )
+        self.gst_native_plugins_debug = self.gst_native_debug / self.gst_plugins
+        self.gst_native_plugins_debug.mkdir(parents=True, exist_ok=True)
 
     def install_gst_sharp_from_gstreamer(self):
         subprojects = self.gst_build_dir / "subprojects"
@@ -262,14 +283,6 @@ class BuildMacOS(Build):
 
     def install_gst(self):
         super().install_gst()
-        gst_native = self.nuget_dir / "runtimes" / self.nuget_platform / "native"
-        gst_native_scanner_dir = self.nuget_dir / "runtimes" / \
-            self.nuget_platform / "native" / "libexec" / "gstreamer-1.0"
-        gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
-        gst_native_plugins = gst_native / "lib" / "gstreamer-1.0"
-        gst_native_plugins.mkdir(parents=True, exist_ok=True)
-        gst_native_gio_modules_dir = gst_native / "lib" / "gio" / "modules"
-        gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
 
         # GStreamer
         tracker = DepsTracker (platform.system(), self._get_gst_install_dir())
@@ -302,21 +315,25 @@ class BuildMacOS(Build):
 
         for f in files.values():
             if "lib/gstreamer-1.0" in str(f):
-                self.copy(f, gst_native_plugins, relocator, strip)
+                self.copy(f, self.gst_native_plugins, relocator, strip)
             elif "lib/gio/modules" in str(f):
-                self.copy(f, gst_native_gio_modules_dir, relocator, strip)
+                self.copy(f, self.gst_native_gio_modules_dir, relocator, strip)
             else:
-                self.copy(f, gst_native, relocator, strip)
+                self.copy(f, self.gst_native, relocator, strip)
 
-        self.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
-                  "gst-plugin-scanner", gst_native_scanner_dir, relocator, strip)
+        self.copy(
+            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner",
+            self.gst_native_scanner_dir,
+            relocator,
+            strip,
+        )
 
         avlibs = glob.glob("/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/libav*.*.*.dylib")
         avlibs = [os.path.split(x)[-1] for x in avlibs]
         for avlib in avlibs:
             avlib_link = avlib.rsplit('.', 3)[0] + '.dylib'
-            run(["rm", "-f", avlib_link], gst_native)
-            run(["ln", "-s", avlib, avlib_link], gst_native)
+            run(["rm", "-f", avlib_link], self.gst_native)
+            run(["ln", "-s", avlib, avlib_link], self.gst_native)
 
     def copy(self, src, dst_dir, relocator, strip):
         filename = src.name
@@ -362,33 +379,28 @@ class BuildWin64(Build):
 
     def install_gst(self):
         super().install_gst()
-        gst_native = self.nuget_dir / "runtimes" / "win-x64" / "native"
-        gst_native_plugins = gst_native / "lib" / "gstreamer-1.0"
-        gst_native_plugins.mkdir(parents=True, exist_ok=True)
-        gst_native_scanner_dir = self.nuget_dir / "runtimes" / \
-            self.nuget_platform / "native" / "libexec" / "gstreamer-1.0"
-        gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
-        gst_native_gio_modules_dir = gst_native / "lib" / "gio" / "modules"
-        gst_native_gio_modules_dir.mkdir(parents=True, exist_ok=True)
-        subprojects = self.gst_build_dir / "subprojects"
 
         # GStreamer
         gst_install_dir = self._get_gst_install_dir()
         for file in glob.glob(f'{gst_install_dir / "bin"}/*.dll'):
-            shutil.copy(file, gst_native)
-        for file in glob.glob(f'{gst_install_dir / "lib" / "gstreamer-1.0"}/*.dll'):
-            shutil.copy(file, gst_native_plugins)
-        shutil.copy(gst_install_dir / "libexec" / "gstreamer-1.0" /
-                    "gst-plugin-scanner.exe", gst_native_scanner_dir)
-        shutil.copy(gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll",
-                gst_native_gio_modules_dir)
+            shutil.copy(file, self.gst_native)
+        for file in glob.glob(f"{gst_install_dir / self.gst_plugins}/*.dll"):
+            shutil.copy(file, self.gst_native_plugins)
+        shutil.copy(
+            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner.exe",
+            self.gst_native_scanner_dir,
+        )
+        shutil.copy(
+            gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll",
+            self.gst_native_gio_modules_dir,
+        )
 
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
         for av in ['avcodec', 'avformat', 'avfilter', 'avutil']:
-            for f in glob.glob(f'{gst_native}/{av}*.dll'):
+            for f in glob.glob(f"{self.gst_native}/{av}*.dll"):
                 run(f"{strip} -s {f}")
-        for f in glob.glob(f"{gst_native}/lib*dll"):
+        for f in glob.glob(f"{self.gst_native}/lib*dll"):
             run(f"{strip} -s {f}")
 
     def _get_gst_install_dir(self):
