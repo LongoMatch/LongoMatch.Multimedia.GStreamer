@@ -45,7 +45,7 @@ jobs:
       - name: Create Debug Nuget Package
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} create_runtime_debug_nuget_package
       - name: Push nuget
-        run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} push_runtime_nuget_package
+        run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} push_runtime_nuget_packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.ref == 'refs/heads/main'
