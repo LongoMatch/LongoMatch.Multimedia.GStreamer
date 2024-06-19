@@ -94,7 +94,7 @@ class Build:
         self.nuget_dir.mkdir(parents=True, exist_ok=True)
 
     def install_deps(self):
-        run(["pip3", "install", "meson", "ninja"])
+        run(["pip3", "install", "--break-system-packages", "meson", "ninja"])
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe",
                  self.cache_dir / "nuget.exe")
 
