@@ -150,6 +150,7 @@ class Build:
             self.nuget_dir / "runtimes" / self.nuget_platform / "native-debug"
         )
         self.gst_native_plugins_debug = self.gst_native_debug / self.gst_plugins
+        self.gst_native_debug.mkdir(parents=True, exist_ok=True)
         self.gst_native_plugins_debug.mkdir(parents=True, exist_ok=True)
 
     def install_gst_sharp_from_gstreamer(self):
@@ -165,27 +166,57 @@ class Build:
                     "gst-editing-services-sharp.dll", self.nuget_dir)
 
     def create_runtime_nuget_package(self):
-        replacements = {'{version}': self.nuget_version,
-                        '{platform}': self.nuget_platform}
+        self._create_nuget_package()
 
-        shutil.copy(self.source_dir / "runtime.json.tpl",
-                    self.build_dir / "runtime.json")
-        replace(self.build_dir / "runtime.json", replacements)
-        shutil.copy(self.source_dir / "longomatch-multimedia-gstreamer.runtime.nuspec.tpl",
-                    self.build_dir / f"longomatch-multimedia-gstreamer.runtime.{self.nuget_platform}.nuspec")
-        replace(self.build_dir /
-                f"longomatch-multimedia-gstreamer.runtime.{self.nuget_platform}.nuspec", replacements)
-        shutil.copy(self.source_dir / "LongoMatch.Multimedia.GStreamer.runtime.targets",
-                    self.nuget_dir / f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}.targets")
-        open(self.nuget_dir / "_._", mode='w').close()
+    def create_runtime_debug_nuget_package(self):
+        self._create_nuget_package(True)
 
-        run(self.nuget_cmd + ["pack", f"longomatch-multimedia-gstreamer.runtime.{self.nuget_platform}.nuspec",
-                              "-Verbosity", "detailed"], self.build_dir)
-
-    def push_runtime_nuget_package(self):
+    def push_runtime_nuget_packages(self):
         # From macOS we only push the native binaries
         self._push_nuget(
             f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}", self.nuget_version)
+        self._push_nuget(
+            f"LongoMatch.Multimedia.GStreamer.runtime.debug.{self.nuget_platform}",
+            self.nuget_version,
+        )
+
+    def _create_nuget_package(self, is_debug=False):
+        name = "LongoMatch.Multimedia.GStreamer"
+        debug = ".debug" if is_debug else ""
+        src_name = f"{name}.runtime{debug}"
+        dst_name = f"{name}.runtime{debug}.{self.nuget_platform}"
+
+        replacements = {
+            "{version}": self.nuget_version,
+            "{platform}": self.nuget_platform,
+        }
+        shutil.copy(
+            self.source_dir / "runtime.json.tpl", self.build_dir / "runtime.json"
+        )
+        replace(self.build_dir / "runtime.json", replacements)
+        shutil.copy(
+            self.source_dir / f"{src_name}.nuspec.tpl",
+            self.build_dir / f"{dst_name}.nuspec",
+        )
+        replace(self.build_dir / f"{dst_name}.nuspec", replacements)
+
+        shutil.copy(
+            self.source_dir / f"{name}.runtime.targets",
+            self.nuget_dir / f"{dst_name}.targets",
+        )
+
+        open(self.nuget_dir / "_._", mode="w").close()
+
+        run(
+            self.nuget_cmd
+            + [
+                "pack",
+                f"{dst_name}.nuspec",
+                "-Verbosity",
+                "detailed",
+            ],
+            self.build_dir,
+        )
 
     def _get_files_from_plugins(self, tracker: DepsTracker):
         plugins = [x.split('\n')[0] for x in open(self.source_dir / "plugins_list.txt").readlines() if not x.startswith('#')]
@@ -264,7 +295,8 @@ class Build:
         #self.build_gst_sharp()
         self.install_gst()
         self.create_runtime_nuget_package()
-        self.push_runtime_nuget_package()
+        self.create_runtime_debug_nuget_package()
+        self.push_runtime_nuget_packages()
 
 
 class BuildMacOS(Build):
@@ -363,7 +395,10 @@ class BuildWin64(Build):
 
     def install_deps(self):
         super().install_deps()
-        Path("C:/Strawberry/c/bin/xsltproc.EXE").unlink()
+
+        xsltproc = Path("C:/Strawberry/c/bin/xsltproc.EXE")
+        if xsltproc.exists():
+            xsltproc.unlink()
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe",
                  self.cache_dir / "nuget.exe")
 
@@ -386,6 +421,10 @@ class BuildWin64(Build):
             shutil.copy(file, self.gst_native)
         for file in glob.glob(f"{gst_install_dir / self.gst_plugins}/*.dll"):
             shutil.copy(file, self.gst_native_plugins)
+        for file in glob.glob(f'{gst_install_dir / "bin"}/*.pdb'):
+            shutil.copy(file, self.gst_native_debug)
+        for file in glob.glob(f"{gst_install_dir / self.gst_plugins}/*.pdb"):
+            shutil.copy(file, self.gst_native_plugins_debug)
         shutil.copy(
             gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner.exe",
             self.gst_native_scanner_dir,
