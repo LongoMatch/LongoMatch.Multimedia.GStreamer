@@ -17,21 +17,21 @@ jobs:
           - { os: windows-latest, arch: x64, cache_dir: 'C:/longomatch', build_dir: 'c:/build', name: windows-x64 }
     runs-on: ${{ matrix.config.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Cache Downloads
         id: cache-downloads
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ matrix.config.cache_dir }}
           key: ${{ matrix.config.name }}-longomatch-1
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.9.7
+        uses: gittools/actions/gitversion/setup@v1.1.1
         with:
           versionSpec: '5.x'
       - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v0.9.7
+        uses: gittools/actions/gitversion/execute@v1.1.1
         with:
           useConfigFile: true
       - name: Install Deps
@@ -42,16 +42,21 @@ jobs:
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} install_gst
       - name: Create Nuget Package
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} create_runtime_nuget_package
+      - name: Create Debug Nuget Package
+        run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} create_runtime_debug_nuget_package
       - name: Push nuget
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} push_runtime_nuget_package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.ref == 'refs/heads/main'
-      - uses: actions/delete-package-versions@v3
+      # FIXME: https://github.com/actions/delete-package-versions/pull/197
+      - uses: actions/delete-package-versions@v5
         with:
           package-name: 'LongoMatch.Multimedia.GStreamer.runtime.win-x64'
           min-versions-to-keep: 5
-      - uses: actions/delete-package-versions@v3
+        continue-on-error: true
+      - uses: actions/delete-package-versions@v5
         with:
-          package-name: 'LongoMatch.Multimedia.GStreamer.runtime.osx-x64'
+          package-name: 'LongoMatch.Multimedia.GStreamer.runtime.osx'
           min-versions-to-keep: 5
+        continue-on-error: true
