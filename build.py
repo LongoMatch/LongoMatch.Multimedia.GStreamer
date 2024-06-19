@@ -172,7 +172,6 @@ class Build:
         self._create_nuget_package(True)
 
     def push_runtime_nuget_packages(self):
-        # From macOS we only push the native binaries
         self._push_nuget(
             f"LongoMatch.Multimedia.GStreamer.runtime.{self.nuget_platform}", self.nuget_version)
         self._push_nuget(
