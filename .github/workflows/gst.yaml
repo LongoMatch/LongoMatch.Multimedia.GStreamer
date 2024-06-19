@@ -49,11 +49,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.ref == 'refs/heads/main'
+      # FIXME: https://github.com/actions/delete-package-versions/pull/197
       - uses: actions/delete-package-versions@v5
         with:
           package-name: 'LongoMatch.Multimedia.GStreamer.runtime.win-x64'
           min-versions-to-keep: 5
+        continue-on-error: true
       - uses: actions/delete-package-versions@v5
         with:
-          package-name: 'LongoMatch.Multimedia.GStreamer.runtime.osx-x64'
+          package-name: 'LongoMatch.Multimedia.GStreamer.runtime.osx'
           min-versions-to-keep: 5
+        continue-on-error: true
