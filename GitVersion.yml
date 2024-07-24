@@ -2,7 +2,7 @@ assembly-versioning-scheme: MajorMinorPatch
 assembly-file-versioning-format: '{Major}.{Minor}.{Patch}.{CommitsSinceVersionSource ?? 0}'
 assembly-versioning-format: '{Major}.{Minor}.{Patch}.{CommitsSinceVersionSource ?? 0}'
 mode: ContinuousDeployment
-next-version: 1.22.8
+next-version: 1.24.5
 ignore:
   sha: []
 merge-message-formats: {}
