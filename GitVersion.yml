@@ -10,24 +10,22 @@ branches:
   master:
     regex: ^master$|^main$
     mode: ContinuousDeployment
-    tag: alpha
+    label: alpha
     increment: Minor
-    prevent-increment-of-merged-branch-version: false
     track-merge-target: true
     source-branches: []
     tracks-release-branches: true
     is-release-branch: false
-    is-mainline: false
+    is-main-branch: false
     pre-release-weight: 0
   release:
     regex: ^release
     mode: ContinuousDelivery
-    tag: ''
+    label: ''
     increment: Patch
-    prevent-increment-of-merged-branch-version: true
     track-merge-target: false
     source-branches: [ 'master' ]
     tracks-release-branches: false
     is-release-branch: false
-    is-mainline: true
+    is-main-branch: true
     pre-release-weight: 55000
