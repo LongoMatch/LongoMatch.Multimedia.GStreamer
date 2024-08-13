@@ -9,7 +9,7 @@ merge-message-formats: {}
 branches:
   master:
     regex: ^master$|^main$
-    mode: ContinuousDeployment
+    mode: ContinuousDelivery
     label: alpha
     increment: Minor
     track-merge-target: true
