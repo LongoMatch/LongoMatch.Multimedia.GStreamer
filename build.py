@@ -88,10 +88,8 @@ class Build:
         self.prefix = self.build_dir / 'prefix'
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.nuget_cmd = [self.cache_dir / "nuget.exe"]
-        self.gst_version = self._get_git_version("GITVERSION_MAJORMINORPATCH", "MajorMinorPatch")
-        self.nuget_version = self._get_git_version(
-            "GITVERSION_FULLSEMVER", "AssemblySemVer"
-        )
+        self.gst_version = self._get_git_version("GitVersion_MajorMinorPatch", "MajorMinorPatch")
+        self.nuget_version = self._get_git_version("GitVersion_AssemblySemVer", "AssemblySemVer")
         self.nuget_dir = self.build_dir / "nuget"
         self.nuget_dir.mkdir(parents=True, exist_ok=True)
 
@@ -288,8 +286,8 @@ class Build:
             return version
 
     def all_deps(self):
-        self.install_deps()
-        self.install_gst_pkg()
+        #self.install_deps()
+        #self.install_gst_pkg()
         #self.clone_gst()
         #self.configure_gst()
         #self.build_gst()
@@ -446,6 +444,7 @@ class BuildWin64(Build):
             run(f"{strip} -s {f}")
 
     def _get_gst_install_dir(self):
+        return Path("D:/gstreamer/1.0/msvc_x86_64")
         import winreg
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                              r"SOFTWARE\WOW6432Node\GStreamer1.0\x86_64",
