@@ -439,6 +439,8 @@ class BuildWin64(Build):
             for f in glob.glob(f"{self.gst_native}/{av}*.dll"):
                 run(f"{strip} -s {f}")
         for f in glob.glob(f"{self.gst_native}/lib*dll"):
+            if 'libssl' in f:
+                continue
             run(f"{strip} -s {f}")
 
     def _get_gst_install_dir(self):
