@@ -89,7 +89,9 @@ class Build:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.nuget_cmd = [self.cache_dir / "nuget.exe"]
         self.gst_version = self._get_git_version("GITVERSION_MAJORMINORPATCH", "MajorMinorPatch")
-        self.nuget_version = self._get_git_version("GITVERSION_FULLSEMVER", "FullSemVer")
+        self.nuget_version = self._get_git_version(
+            "GITVERSION_FULLSEMVER", "AssemblySemVer"
+        )
         self.nuget_dir = self.build_dir / "nuget"
         self.nuget_dir.mkdir(parents=True, exist_ok=True)
 
