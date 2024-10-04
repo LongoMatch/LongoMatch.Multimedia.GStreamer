@@ -286,8 +286,8 @@ class Build:
             return version
 
     def all_deps(self):
-        #self.install_deps()
-        #self.install_gst_pkg()
+        self.install_deps()
+        self.install_gst_pkg()
         #self.clone_gst()
         #self.configure_gst()
         #self.build_gst()
@@ -444,7 +444,6 @@ class BuildWin64(Build):
             run(f"{strip} -s {f}")
 
     def _get_gst_install_dir(self):
-        return Path("D:/gstreamer/1.0/msvc_x86_64")
         import winreg
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                              r"SOFTWARE\WOW6432Node\GStreamer1.0\x86_64",
