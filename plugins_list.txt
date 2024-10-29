@@ -11,6 +11,7 @@ audiotestsrc
 autodetect
 avi
 cdg
+codectimestamper
 coreelements
 deinterlace
 decklink
