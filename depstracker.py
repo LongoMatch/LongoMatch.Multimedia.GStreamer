@@ -72,6 +72,29 @@ class ObjdumpLister(RecursiveLister):
         return [os.path.realpath(x) for x in files if os.path.exists(x)]
 
 
+class DumpbinLister(RecursiveLister):
+
+    def __init__(self):
+        super().__init__()
+        vswhere_path = Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe")
+        if not vswhere_path.exists():
+            raise FileNotFoundError("vswhere.exe not found. Please ensure Visual Studio is installed.")
+
+        # Find the latest installed version of Visual Studio
+        cmd = [str(vswhere_path), "-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-find", "VC/Tools/MSVC/*/bin/Hostx64/x64/dumpbin.exe"]
+        self.dumpbin_path = subprocess.run(cmd, capture_output=True).stdout.decode('utf-8').strip().splitlines()[0]
+        if not self.dumpbin_path:
+            raise FileNotFoundError("dumpbin.exe not found. Please ensure the required Visual Studio components are installed.")
+
+    def list_file_deps(self, prefix:Path, path:Path):
+        cmd = [self.dumpbin_path, '/DEPENDENTS', path]
+        files = subprocess.run(cmd, capture_output=True).stdout.decode('utf-8').splitlines()
+        prog = re.compile(r"^\s+(\S+\.dll)$")
+        files = [prog.sub(r"\1", x) for x in files if prog.match(x) is not None]
+        files = [os.path.join(prefix, 'bin', x) for x in files if x.lower().endswith('dll')]
+        return [Path(os.path.realpath(x)) for x in files if os.path.exists(x)]
+
+
 class OtoolLister(RecursiveLister):
 
     def list_file_deps(self, prefix:Path, path:Path):
@@ -128,7 +151,7 @@ class LddLister():
 class DepsTracker():
 
     BACKENDS = {
-        "Windows": ObjdumpLister,
+        "Windows": DumpbinLister,
         "Linux" : LddLister,
         "Darwin" : OtoolLister}
 

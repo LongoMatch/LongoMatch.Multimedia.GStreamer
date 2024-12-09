@@ -388,24 +388,23 @@ class BuildWin64(Build):
     def install_gst(self):
         super().install_gst()
 
-        # GStreamer
+        tracker = DepsTracker(platform.system(), self._get_gst_install_dir())
         gst_install_dir = self._get_gst_install_dir()
-        for file in glob.glob(f'{gst_install_dir / "bin"}/*.dll'):
-            shutil.copy(file, self.gst_native)
-        for file in glob.glob(f"{gst_install_dir / self.gst_plugins}/*.dll"):
-            shutil.copy(file, self.gst_native_plugins)
-        for file in glob.glob(f'{gst_install_dir / "bin"}/*.pdb'):
-            shutil.copy(file, self.gst_native_debug)
-        for file in glob.glob(f"{gst_install_dir / self.gst_plugins}/*.pdb"):
-            shutil.copy(file, self.gst_native_plugins_debug)
-        shutil.copy(
-            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner.exe",
-            self.gst_native_scanner_dir,
-        )
-        shutil.copy(
-            gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll",
-            self.gst_native_gio_modules_dir,
-        )
+        files = self._get_files_from_plugins(tracker)
+        files += self._get_files_from_libs(tracker)
+        gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll"
+        gst_libsoup = gst_install_dir / "lib" / "soup-2.4.1.dll"
+        gst_inspect = gst_install_dir / "bin" / "gst-inspect-1.0.exe"
+        files += tracker.list_deps([gst_gio_openssl, gst_libsoup, gst_inspect])
+        files = set(files)
+
+        for f in files:
+            if "lib\\gstreamer-1.0" in str(f):
+                shutil.copy(f, self.gst_native_plugins)
+            elif "lib\\gio\\modules" in str(f):
+                shutil.copy(f, self.gst_native_gio_modules_dir)
+            else:
+                shutil.copy(f, self.gst_native)
 
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
