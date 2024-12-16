@@ -88,8 +88,11 @@ class Build:
         self.prefix = self.build_dir / 'prefix'
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.nuget_cmd = [self.cache_dir / "nuget.exe"]
-        self.gst_version = self._get_git_version("GitVersion_MajorMinorPatch", "MajorMinorPatch")
-        self.nuget_version = self._get_git_version("GitVersion_AssemblySemVer", "AssemblySemVer")
+        self.version = self._get_git_version()
+        self.gst_version = (
+            f"{self.version.major}.{self.version.minor}.{self.version.patch}"
+        )
+        self.nuget_version = f"{self.version}"
         self.nuget_dir = self.build_dir / "nuget"
         self.nuget_dir.mkdir(parents=True, exist_ok=True)
 
@@ -251,39 +254,10 @@ class Build:
             "--source", "https://nuget.pkg.github.com/longomatch/index.json",
              "--api-key", os.environ["GITHUB_TOKEN"]])
 
-    def _install_gitversion(self):
-        try:
-            subprocess.run(
-                    ["dotnet", "tool", "install", "-g", "GitVersion.Tool"],
-                    check=False,
-                )
-        except Exception as e:
-            raise Exception(f"Error installing dotnet gitversion: {e}")
+    def _get_git_version(self):
+        from version import get_version
 
-    def _get_git_version(self, version_env, variable):
-        version = os.environ.get(version_env, None)
-
-        if version is None:
-            self._install_gitversion()
-            try:
-                result = subprocess.run(
-                    ["dotnet", "gitversion", self.source_dir, "/output", "json", "/showvariable", variable],
-                    text=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-
-                if result.returncode == 0:
-                    version = result.stdout.strip()
-                    print(f"Version set: {version}")
-                    return version
-                else:
-                    raise Exception(f"Error running dotnet gitversion: {result.stderr}")
-            except Exception as e:
-                raise Exception(f"Error running dotnet gitversion: {e}")
-        else:
-            print(f"{version_env} is already set:", version)
-            return version
+        return get_version(self.source_dir, self.source_dir / "version.txt")
 
     def all_deps(self):
         self.install_deps()
