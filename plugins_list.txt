@@ -8,10 +8,12 @@ audioparsers
 audiorate
 audioresample
 audiotestsrc
+autoconvert
 autodetect
 avi
 cdg
 codectimestamper
+compositor
 coreelements
 deinterlace
 decklink
@@ -31,6 +33,9 @@ multipart
 nle
 ogg
 opengl
+openh264
+opus
+opusparse
 osxaudio
 pango
 playback
@@ -38,6 +43,7 @@ png
 rtp
 rtpmanager
 rtsp
+srtp
 soup
 subparse
 togglerecord
@@ -57,5 +63,17 @@ vpx
 # macOS
 applemedia
 # Windows
+amfcodec
+d3d
 d3d11
+d3d12
+directshow
+directsound
+directsoundsrc
+dwrite
+mediafoundation
+nvcodec
+qsv
 wasapi2
+winks
+winscreencap
