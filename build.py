@@ -98,6 +98,7 @@ class Build:
         self.gst_configure_cmd = [
             "meson",
             "setup",
+            "--buildtype=release",
             self.gst_build_dir.as_posix(),
             self.gst_dir.as_posix(),
             "--wrap-mode=nofallback",
@@ -302,6 +303,7 @@ class BuildMacOS(Build):
             "setup",
             (self.gst_build_dir / arch).as_posix(),
             self.gst_dir.as_posix(),
+            "--buildtype=release",
             "--wrap-mode=nofallback",
             f"--prefix={self.prefix.as_posix()}",
             "--reconfigure",

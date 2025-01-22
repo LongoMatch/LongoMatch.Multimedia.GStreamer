@@ -45,6 +45,7 @@ class OSXRelocator(object):
                 new_lib = lib.replace(prefix, '@rpath')
                 subprocess.call(
                     [INT_CMD, '-change', lib, new_lib, object_file])
+        self._remove_rpath(object_file)
         for p in ['.', '@loader_path', '@executable_path']:
             subprocess.call([INT_CMD, '-add_rpath', p, object_file])
 
@@ -59,6 +60,26 @@ class OSXRelocator(object):
         # Remove the version info
         libs = [x.split(' ', 1)[0] for x in libs]
         return libs
+
+    def _remove_rpath(self, object_file):
+        # Get the current RPATHs
+        result = subprocess.run(
+            ["otool", "-l", object_file], capture_output=True, text=True, check=True
+        )
+        lines = result.stdout.splitlines()
+        rpaths = [
+            lines[i + 2].strip().split(" ")[1]
+            for i, line in enumerate(lines)
+            if "cmd LC_RPATH" in line and lines[i + 2].strip().startswith("path")
+        ]
+
+        # Remove each RPATH
+        for rpath in set(rpaths):
+            subprocess.run(
+                ["install_name_tool", "-delete_rpath", rpath, object_file],
+                check=False,
+            )
+            print(f"Removed RPATH {rpath} from {object_file}")
 
     def _get_prefixes(self, object_file):
         prefixes = set([os.path.dirname(x)
