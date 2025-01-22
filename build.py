@@ -154,12 +154,7 @@ class Build:
         self.gst_native_plugins = self.gst_native / self.gst_plugins
         self.gst_native_plugins.mkdir(parents=True, exist_ok=True)
         self.gst_native_scanner_dir = (
-            self.nuget_dir
-            / "runtimes"
-            / self.nuget_platform
-            / "native"
-            / "libexec"
-            / "gstreamer-1.0"
+            self.nuget_dir / "runtimes" / self.nuget_platform / "native"
         )
         self.gst_native_scanner_dir.mkdir(parents=True, exist_ok=True)
         self.gst_native_gio_modules_dir = self.gst_native / "lib" / "gio" / "modules"
