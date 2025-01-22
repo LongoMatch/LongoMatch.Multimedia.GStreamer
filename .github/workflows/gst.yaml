@@ -30,6 +30,8 @@ jobs:
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} install_deps
       - name: Install GStreamer package
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} install_gst_pkg
+      - name: Build GStreamer
+        run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} build_gst
       - name: Install GStreamer binaries
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} install_gst
       - name: Create Nuget Package
