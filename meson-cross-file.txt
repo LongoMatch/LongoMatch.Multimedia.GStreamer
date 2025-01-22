@@ -1,0 +1,39 @@
+
+[host_machine]
+system = 'darwin'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[constants]
+toolchain = ''
+
+[built-in options]
+c_args = ['-arch', 'x86_64', '-m64', '-Wno-error=format-nonliteral', '-Werror=unguarded-availability-new', '-mmacosx-version-min=10.13']
+cpp_args = ['-arch', 'x86_64', '-m64', '-Wno-error=format-nonliteral', '-Werror=unguarded-availability-new', '-mmacosx-version-min=10.13', '-stdlib=libc++']
+objc_args = ['-arch', 'x86_64', '-m64', '-Wno-error=format-nonliteral', '-Werror=unguarded-availability-new', '-mmacosx-version-min=10.13', '-fno-objc-msgsend-selector-stubs']
+objcpp_args = ['-arch', 'x86_64', '-m64', '-Wno-error=format-nonliteral', '-Werror=unguarded-availability-new', '-mmacosx-version-min=10.13', '-fno-objc-msgsend-selector-stubs']
+c_link_args = ['-headerpad_max_install_names', '-Wl,-headerpad_max_install_names', '-Wno-error=unused-command-line-argument', '-arch', 'x86_64', '-m64', '-Wl,-arch,x86_64', '-mmacosx-version-min=10.13',]
+cpp_link_args = ['-headerpad_max_install_names', '-Wl,-headerpad_max_install_names', '-Wno-error=unused-command-line-argument', '-arch', 'x86_64', '-m64', '-Wl,-arch,x86_64', '-mmacosx-version-min=10.13',]
+objc_link_args = ['-headerpad_max_install_names', '-Wl,-headerpad_max_install_names', '-Wno-error=unused-command-line-argument', '-arch', 'x86_64', '-m64', '-Wl,-arch,x86_64', '-mmacosx-version-min=10.13',]
+objcpp_link_args = ['-headerpad_max_install_names', '-Wl,-headerpad_max_install_names', '-Wno-error=unused-command-line-argument', '-arch', 'x86_64', '-m64', '-Wl,-arch,x86_64', '-mmacosx-version-min=10.13',]
+
+
+[properties]
+needs_exe_wrapper = false
+
+
+[binaries]
+c = ['clang']
+cpp = ['clang++']
+objc = ['clang']
+objcpp = ['clang++']
+ar = ['ar']
+nasm = 'nasm'
+cmake = ['false']
+aclocal = ['aclocal']
+pager = ['less']
+strip = ['strip']
+ranlib = ['ranlib']
+nm = ['nm']
+as = ['as']

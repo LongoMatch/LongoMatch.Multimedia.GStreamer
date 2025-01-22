@@ -95,6 +95,16 @@ class Build:
         self.nuget_version = f"{self.version}"
         self.nuget_dir = self.build_dir / "nuget"
         self.nuget_dir.mkdir(parents=True, exist_ok=True)
+        self.gst_configure_cmd = [
+            "meson",
+            "setup",
+            self.gst_build_dir.as_posix(),
+            self.gst_dir.as_posix(),
+            "--wrap-mode=nofallback",
+            f"--prefix={self.prefix.as_posix()}",
+            "-Dauto_features=disabled",
+            "--reconfigure",
+        ]
 
     def install_deps(self):
         run(["pip3", "install", "--break-system-packages", "meson", "ninja"])
@@ -114,22 +124,28 @@ class Build:
         self._install_package(self.cache_dir / GST_TEMPLATE[self.platform].format("-devel", self.gst_version),
                               self.build_dir / "gst_devel_install.log")
 
-    def configure_gst(self):
-        cmd = ["meson", "setup", ".", self.gst_dir.as_posix(),
-               "--wrap-mode=nofallback",
-               f"--prefix={self.prefix.as_posix()}",
-               "-Dauto_features=disabled",
-               "-Dbase=disabled",
-               "-Dgood=disabled",
-               "-Dbad=enabled",
-               "-Dgst-plugins-bad:mpegtsdemux=enabled"]
-        if self.gst_build_dir.exists():
-            shutil.rmtree(self.gst_build_dir)
-        self.gst_build_dir.mkdir(parents=True)
-        run(cmd, self.gst_build_dir)
+    def clone_gst(self):
+        if self.gst_dir.exists():
+            run(["git", "fetch"], self.gst_dir)
+            run(["git", "reset", "--hard", "1.24"], self.gst_dir)
+        else:
+            run(
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/LongoMatch/gstreamer.git",
+                    self.gst_dir,
+                    "--single-branch",
+                    "--branch",
+                    "1.24",
+                ],
+            )
 
-    def build_gst(self):
-        run(f"ninja", self.gst_build_dir)
+    def configure_gst(self):
+        run(self.gst_configure_cmd)
+
+    def compile_gst(self):
+        run(["meson", "compile", "-C", self.gst_build_dir])
 
     def install_gst(self):
         self.gst_plugins = Path("lib") / "gstreamer-1.0"
@@ -259,13 +275,15 @@ class Build:
 
         return get_version(self.source_dir, self.source_dir / "version.txt")
 
+    def build_gst(self):
+        self.clone_gst()
+        self.configure_gst()
+        self.compile_gst()
+
     def all_deps(self):
         self.install_deps()
         self.install_gst_pkg()
-        #self.clone_gst()
-        #self.configure_gst()
-        #self.build_gst()
-        #self.build_gst_sharp()
+        self.build_gst()
         self.install_gst()
         self.create_runtime_nuget_package()
         self.create_runtime_debug_nuget_package()
@@ -278,13 +296,49 @@ class BuildMacOS(Build):
         super().__init__('Darwin', 'osx', source_dir, build_dir, cache_dir)
         self.nuget_cmd = ["mono", self.cache_dir / "nuget.exe"]
 
+    def _get_configure_cmd(self, arch):
+        gst_configure_cmd = [
+            "meson",
+            "setup",
+            (self.gst_build_dir / arch).as_posix(),
+            self.gst_dir.as_posix(),
+            "--wrap-mode=nofallback",
+            f"--prefix={self.prefix.as_posix()}",
+            "--reconfigure",
+            "-Dauto_features=disabled",
+            "-Dbase=enabled",
+            "-Dgst-plugins-base:gl=enabled",
+            "-Dgst-plugins-base:gl_api=auto",
+            "-Dgst-plugins-base:gl_platform=auto",
+            "-Dgst-plugins-base:gl_winsys=auto",
+            "-Dgood=disabled",
+            "-Dugly=disabled",
+            "-Dbad=enabled",
+            "-Dgst-plugins-bad:gl=enabled",
+            "-Dgst-plugins-bad:applemedia=enabled",
+        ]
+        if arch == "x86_64":
+            gst_configure_cmd += [
+                f"--cross-file={self.source_dir / 'meson-cross-file.txt'}",
+            ]
+        return gst_configure_cmd
+
     def configure_gst(self):
         gst_install_dir = self._get_gst_install_dir()
         os.environ["PKG_CONFIG"] = str(
-            (gst_install_dir / "bin" / "pkg-config").absolute())
+            (gst_install_dir / "bin" / "pkg-config").absolute()
+        )
         os.environ["PKG_CONFIG_LIBDIR"] = str(
-            (gst_install_dir / "lib" / "pkgconfig").absolute())
+            (gst_install_dir / "lib" / "pkgconfig").absolute()
+        )
+        self.gst_configure_cmd = self._get_configure_cmd("x86_64")
         super().configure_gst()
+        self.gst_configure_cmd = self._get_configure_cmd("arm64")
+        super().configure_gst()
+
+    def compile_gst(self):
+        run(["meson", "compile", "-C", self.gst_build_dir / "x86_64"])
+        run(["meson", "compile", "-C", self.gst_build_dir / "arm64"])
 
     def install_gst(self):
         super().install_gst()
@@ -333,6 +387,21 @@ class BuildMacOS(Build):
             strip,
         )
 
+        plugins = ["subprojects/gst-plugins-bad/sys/applemedia/libgstapplemedia.dylib"]
+        for plugin in plugins:
+            universal_lib_path = self.gst_build_dir / plugin.split("/")[-1]
+            run(
+                [
+                    "lipo",
+                    self.gst_build_dir / "x86_64" / plugin,
+                    self.gst_build_dir / "arm64" / plugin,
+                    "-create",
+                    "-output",
+                    universal_lib_path,
+                ]
+            )
+            self.copy(universal_lib_path, self.gst_native_plugins, relocator, strip)
+
         avlibs = glob.glob("/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/libav*.*.*.dylib")
         avlibs = [os.path.split(x)[-1] for x in avlibs]
         for avlib in avlibs:
@@ -375,6 +444,9 @@ class BuildWin64(Build):
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe",
                  self.cache_dir / "nuget.exe")
 
+    def build_gst(self):
+        pass
+
     def configure_gst(self):
         gst_install_dir = self._get_gst_install_dir()
         os.environ["PKG_CONFIG"] = str(
@@ -382,7 +454,6 @@ class BuildWin64(Build):
         os.environ["PKG_CONFIG_LIBDIR"] = str(
             (gst_install_dir / "lib" / "pkgconfig").absolute())
         os.environ["PATH"] = f'{str(gst_install_dir / "bin")};{os.environ["PATH"]}'
-
         super().configure_gst()
 
     def install_gst(self):
