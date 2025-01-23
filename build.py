@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import os
 import shlex
+import stat
 import urllib.request
 from pathlib import Path
 from osxrelocator import OSXRelocator
@@ -348,7 +349,15 @@ class BuildMacOS(Build):
         gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so"
         gst_libsoup = gst_install_dir / "lib" / "libsoup-2.4.1.dylib"
         gst_inspect = gst_install_dir / "bin" / "gst-inspect-1.0"
-        lib_files += tracker.list_deps([gst_gio_openssl, gst_libsoup, gst_inspect])
+        gst_scanner = (
+            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner"
+        )
+
+        i_gst_scanner = self.gst_native_scanner_dir / "gst-plugin-scanner"
+        i_gst_inspect = self.gst_native_scanner_dir / "gst-inspect-1.0"
+        lib_files += tracker.list_deps(
+            [gst_gio_openssl, gst_libsoup, gst_inspect, gst_scanner]
+        )
         lib_files = set(lib_files)
 
         # The installer does not respect symlinks, copy only the real
@@ -377,12 +386,8 @@ class BuildMacOS(Build):
             else:
                 self.copy(f, self.gst_native, relocator, strip)
 
-        self.copy(
-            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner",
-            self.gst_native_scanner_dir,
-            relocator,
-            strip,
-        )
+        i_gst_inspect.chmod(i_gst_scanner.stat().st_mode | stat.S_IEXEC)
+        i_gst_inspect.chmod(i_gst_inspect.stat().st_mode | stat.S_IEXEC)
 
         plugins = ["subprojects/gst-plugins-bad/sys/applemedia/libgstapplemedia.dylib"]
         for plugin in plugins:
