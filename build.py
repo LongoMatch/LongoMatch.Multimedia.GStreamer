@@ -389,7 +389,7 @@ class BuildMacOS(Build):
         i_gst_inspect.chmod(i_gst_scanner.stat().st_mode | stat.S_IEXEC)
         i_gst_inspect.chmod(i_gst_inspect.stat().st_mode | stat.S_IEXEC)
 
-        plugins = ["subprojects/gst-plugins-bad/sys/applemedia/libgstapplemedia.dylib"]
+        plugins = []
         for plugin in plugins:
             universal_lib_path = self.gst_build_dir / plugin.split("/")[-1]
             run(
