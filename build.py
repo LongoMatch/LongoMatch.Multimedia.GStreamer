@@ -305,15 +305,16 @@ class BuildMacOS(Build):
             "--reconfigure",
             "-Dauto_features=disabled",
             "-Dbase=enabled",
-            "-Dgst-plugins-base:gl=enabled",
-            "-Dgst-plugins-base:gl_api=auto",
-            "-Dgst-plugins-base:gl_platform=auto",
-            "-Dgst-plugins-base:gl_winsys=auto",
             "-Dgood=disabled",
             "-Dugly=disabled",
-            "-Dbad=enabled",
-            "-Dgst-plugins-bad:gl=enabled",
-            "-Dgst-plugins-bad:applemedia=enabled",
+            "-Dbad=disabled",
+            "-Dges=enabled",
+            # "-Dgst-plugins-base:gl=enabled",
+            # "-Dgst-plugins-base:gl_api=auto",
+            # "-Dgst-plugins-base:gl_platform=auto",
+            # "-Dgst-plugins-base:gl_winsys=auto",
+            # "-Dgst-plugins-bad:gl=enabled",
+            # "-Dgst-plugins-bad:applemedia=enabled",
         ]
         if arch == "x86_64":
             gst_configure_cmd += [
@@ -389,7 +390,7 @@ class BuildMacOS(Build):
         i_gst_inspect.chmod(i_gst_scanner.stat().st_mode | stat.S_IEXEC)
         i_gst_inspect.chmod(i_gst_inspect.stat().st_mode | stat.S_IEXEC)
 
-        plugins = ["subprojects/gst-plugins-bad/sys/applemedia/libgstapplemedia.dylib"]
+        plugins = ["subprojects/gst-editing-services/plugins/ges/libgstges.dylib"]
         for plugin in plugins:
             universal_lib_path = self.gst_build_dir / plugin.split("/")[-1]
             run(
@@ -446,9 +447,6 @@ class BuildWin64(Build):
         download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe",
                  self.cache_dir / "nuget.exe")
 
-    def build_gst(self):
-        pass
-
     def configure_gst(self):
         gst_install_dir = self._get_gst_install_dir()
         os.environ["PKG_CONFIG"] = str(
@@ -456,6 +454,7 @@ class BuildWin64(Build):
         os.environ["PKG_CONFIG_LIBDIR"] = str(
             (gst_install_dir / "lib" / "pkgconfig").absolute())
         os.environ["PATH"] = f'{str(gst_install_dir / "bin")};{os.environ["PATH"]}'
+        self.gst_configure_cmd = self._get_configure_cmd()
         super().configure_gst()
 
     def install_gst(self):
@@ -479,6 +478,10 @@ class BuildWin64(Build):
             else:
                 shutil.copy(f, self.gst_native)
 
+        plugins = ["subprojects/gst-editing-services/plugins/ges/libgstges.dll"]
+        for plugin in plugins:
+            shutil.copy(self.gst_build_dir / plugin, self.gst_native_plugins)
+
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
         for av in ['avcodec', 'avformat', 'avfilter', 'avutil']:
@@ -488,6 +491,25 @@ class BuildWin64(Build):
             if 'libssl' in f:
                 continue
             run(f"{strip} -s {f}")
+
+    def _get_configure_cmd(self):
+        gst_configure_cmd = [
+            "meson",
+            "setup",
+            self.gst_build_dir.as_posix(),
+            self.gst_dir.as_posix(),
+            "--buildtype=release",
+            "--wrap-mode=nofallback",
+            f"--prefix={self.prefix.as_posix()}",
+            "--reconfigure",
+            "-Dauto_features=disabled",
+            "-Dbase=enabled",
+            "-Dgood=disabled",
+            "-Dugly=disabled",
+            "-Dbad=disabled",
+            "-Dges=enabled",
+        ]
+        return gst_configure_cmd
 
     def _get_gst_install_dir(self):
         import winreg
