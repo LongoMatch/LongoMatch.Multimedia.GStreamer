@@ -391,7 +391,7 @@ class BuildMacOS(Build):
         i_gst_inspect.chmod(i_gst_scanner.stat().st_mode | stat.S_IEXEC)
         i_gst_inspect.chmod(i_gst_inspect.stat().st_mode | stat.S_IEXEC)
 
-        plugins = ["subprojects/gst-editing-services/plugins/ges/libgstges.dylib"]
+        plugins = []
         for plugin in plugins:
             universal_lib_path = self.gst_build_dir / plugin.split("/")[-1]
             run(
@@ -405,6 +405,21 @@ class BuildMacOS(Build):
                 ]
             )
             self.copy(universal_lib_path, self.gst_native_plugins, relocator, strip)
+
+        libs = ["subprojects/gst-editing-services/ges/libges-1.0.0.dylib"]
+        for lib in libs:
+            universal_lib_path = self.gst_build_dir / lib.split("/")[-1]
+            run(
+                [
+                    "lipo",
+                    self.gst_build_dir / "x86_64" / lib,
+                    self.gst_build_dir / "arm64" / lib,
+                    "-create",
+                    "-output",
+                    universal_lib_path,
+                ]
+            )
+            self.copy(universal_lib_path, self.gst_native, relocator, strip)
 
         avlibs = glob.glob("/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/libav*.*.*.dylib")
         avlibs = [os.path.split(x)[-1] for x in avlibs]
@@ -479,9 +494,13 @@ class BuildWin64(Build):
             else:
                 shutil.copy(f, self.gst_native)
 
-        plugins = ["subprojects/gst-editing-services/plugins/ges/libgstges.dll"]
+        plugins = []
         for plugin in plugins:
             shutil.copy(self.gst_build_dir / plugin, self.gst_native_plugins)
+
+        libs = ["subprojects/gst-editing-services/ges/ges-1.0-0.dll"]
+        for lib in libs:
+            shutil.copy(self.gst_build_dir / lib, self.gst_native)
 
         # Strip GCC shared libraries
         strip = os.environ.get("STRIP", "strip.exe")
