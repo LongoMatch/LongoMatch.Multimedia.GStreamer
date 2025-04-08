@@ -127,7 +127,7 @@ class Build:
                               self.build_dir / "gst_devel_install.log")
 
     def clone_gst(self):
-        gst_commit = "01d6a3e8f6"
+        gst_commit = "50aef859b7"
         if self.gst_dir.exists():
             run(["git", "fetch"], self.gst_dir)
         else:
