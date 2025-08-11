@@ -29,6 +29,10 @@ jobs:
         with:
           path: ${{ matrix.config.cache_dir }}
           key: ${{ matrix.config.name }}-longomatch-1
+      # See https://github.com/actions/runner-images/issues/10859
+      - name: Install mono
+        run: brew install mono
+        if: matrix.config.os == 'macos-latest'
       - name: Install Deps
         run: python3 build.py -b ${{ matrix.config.build_dir }} -c ${{ matrix.config.cache_dir }} install_deps
       - name: Install GStreamer package
