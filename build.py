@@ -351,9 +351,7 @@ class BuildMacOS(Build):
         gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "libgioopenssl.so"
         gst_libsoup = gst_install_dir / "lib" / "libsoup-2.4.1.dylib"
         gst_inspect = gst_install_dir / "bin" / "gst-inspect-1.0"
-        gst_scanner = (
-            gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner"
-        )
+        gst_scanner = gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner"
 
         i_gst_scanner = self.gst_native_scanner_dir / "gst-plugin-scanner"
         i_gst_inspect = self.gst_native_scanner_dir / "gst-inspect-1.0"
@@ -483,7 +481,8 @@ class BuildWin64(Build):
         gst_gio_openssl = gst_install_dir / "lib" / "gio" / "modules" / "gioopenssl.dll"
         gst_libsoup = gst_install_dir / "lib" / "soup-2.4.1.dll"
         gst_inspect = gst_install_dir / "bin" / "gst-inspect-1.0.exe"
-        files += tracker.list_deps([gst_gio_openssl, gst_libsoup, gst_inspect])
+        gst_scanner = gst_install_dir / "libexec" / "gstreamer-1.0" / "gst-plugin-scanner.exe"
+        files += tracker.list_deps([gst_gio_openssl, gst_libsoup, gst_inspect, gst_scanner])
         files = set(files)
 
         for f in files:
