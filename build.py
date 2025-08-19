@@ -309,7 +309,7 @@ class BuildMacOS(Build):
             "-Dgood=disabled",
             "-Dugly=disabled",
             "-Dbad=disabled",
-            "-Dges=enabled",
+            "-Dges=disabled",
             # "-Dgst-plugins-base:gl=enabled",
             # "-Dgst-plugins-base:gl_api=auto",
             # "-Dgst-plugins-base:gl_platform=auto",
@@ -404,7 +404,7 @@ class BuildMacOS(Build):
             )
             self.copy(universal_lib_path, self.gst_native_plugins, relocator, strip)
 
-        libs = ["subprojects/gst-editing-services/ges/libges-1.0.0.dylib"]
+        libs = []
         for lib in libs:
             universal_lib_path = self.gst_build_dir / lib.split("/")[-1]
             run(
@@ -497,7 +497,7 @@ class BuildWin64(Build):
         for plugin in plugins:
             shutil.copy(self.gst_build_dir / plugin, self.gst_native_plugins)
 
-        libs = ["subprojects/gst-editing-services/ges/ges-1.0-0.dll"]
+        libs = [""]
         for lib in libs:
             shutil.copy(self.gst_build_dir / lib, self.gst_native)
 
