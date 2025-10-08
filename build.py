@@ -127,7 +127,7 @@ class Build:
                               self.build_dir / "gst_devel_install.log")
 
     def clone_gst(self):
-        gst_commit = "50aef859b7"
+        gst_commit = "fae513aac34"
         if self.gst_dir.exists():
             run(["git", "fetch"], self.gst_dir)
         else:
@@ -306,16 +306,17 @@ class BuildMacOS(Build):
             "--reconfigure",
             "-Dauto_features=disabled",
             "-Dbase=enabled",
-            "-Dgood=disabled",
+            "-Dgood=enabled",
             "-Dugly=disabled",
             "-Dbad=disabled",
-            "-Dges=enabled",
+            "-Dges=disabled",
             # "-Dgst-plugins-base:gl=enabled",
             # "-Dgst-plugins-base:gl_api=auto",
             # "-Dgst-plugins-base:gl_platform=auto",
             # "-Dgst-plugins-base:gl_winsys=auto",
             # "-Dgst-plugins-bad:gl=enabled",
             # "-Dgst-plugins-bad:applemedia=enabled",
+            "-Dgst-plugins-good:isomp4=enabled",
         ]
         if arch == "x86_64":
             gst_configure_cmd += [
@@ -389,7 +390,7 @@ class BuildMacOS(Build):
         i_gst_inspect.chmod(i_gst_scanner.stat().st_mode | stat.S_IEXEC)
         i_gst_inspect.chmod(i_gst_inspect.stat().st_mode | stat.S_IEXEC)
 
-        plugins = []
+        plugins = ["subprojects/gst-plugins-good/gst/isomp4/libgstisomp4.dylib"]
         for plugin in plugins:
             universal_lib_path = self.gst_build_dir / plugin.split("/")[-1]
             run(
@@ -404,7 +405,7 @@ class BuildMacOS(Build):
             )
             self.copy(universal_lib_path, self.gst_native_plugins, relocator, strip)
 
-        libs = ["subprojects/gst-editing-services/ges/libges-1.0.0.dylib"]
+        libs = []
         for lib in libs:
             universal_lib_path = self.gst_build_dir / lib.split("/")[-1]
             run(
@@ -493,11 +494,11 @@ class BuildWin64(Build):
             else:
                 shutil.copy(f, self.gst_native)
 
-        plugins = []
+        plugins = ["subprojects/gst-plugins-good/gst/isomp4/gstisomp4.dll"]
         for plugin in plugins:
             shutil.copy(self.gst_build_dir / plugin, self.gst_native_plugins)
 
-        libs = ["subprojects/gst-editing-services/ges/ges-1.0-0.dll"]
+        libs = []
         for lib in libs:
             shutil.copy(self.gst_build_dir / lib, self.gst_native)
 
@@ -523,10 +524,11 @@ class BuildWin64(Build):
             "--reconfigure",
             "-Dauto_features=disabled",
             "-Dbase=enabled",
-            "-Dgood=disabled",
+            "-Dgood=enabled",
             "-Dugly=disabled",
             "-Dbad=disabled",
-            "-Dges=enabled",
+            "-Dges=disabled",
+            "-Dgst-plugins-good:isomp4=enabled",
         ]
         return gst_configure_cmd
 
