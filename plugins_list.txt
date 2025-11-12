@@ -1,4 +1,3 @@
-aom
 app
 asf
 audioconvert
@@ -15,6 +14,7 @@ cdg
 codectimestamper
 compositor
 coreelements
+dav1d
 deinterlace
 decklink
 encoding
