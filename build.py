@@ -12,6 +12,8 @@ from pathlib import Path
 from osxrelocator import OSXRelocator
 from depstracker import DepsTracker
 
+GST_COMMIT = "ad36e68b74a7e6f21ad9008b2c89b9bea6a5483c"
+
 GST_TEMPLATE = {
     'Windows': "gstreamer-1.0{}-msvc-x86_64-{}.msi",
     'Darwin': "gstreamer-1.0{}-{}-universal.pkg"
@@ -127,7 +129,6 @@ class Build:
                               self.build_dir / "gst_devel_install.log")
 
     def clone_gst(self):
-        gst_commit = "fae513aac34"
         if self.gst_dir.exists():
             run(["git", "fetch"], self.gst_dir)
         else:
@@ -142,7 +143,7 @@ class Build:
                     "1.24",
                 ],
             )
-        run(["git", "reset", "--hard", gst_commit], self.gst_dir)  # 1.24
+        run(["git", "reset", "--hard", GST_COMMIT], self.gst_dir)
 
     def configure_gst(self):
         run(self.gst_configure_cmd)
